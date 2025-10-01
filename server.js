@@ -16,6 +16,9 @@ const client = apiKeySid && apiKeySecret
     ? twilio(apiKeySid, apiKeySecret, { accountSid })
     : twilio(accountSid, authToken);
 
+// Stable client identity used for incoming browser connections (set in .env)
+const CLIENT_ID = process.env.CLIENT_ID || 'demo-client';
+
 // Render HTML page
 app.get('/', (req, res) => {
     res.render('index', { message: null }); // send empty message by default
@@ -40,7 +43,9 @@ app.get('/token', (req, res) => {
     const AccessToken = twilio.jwt.AccessToken;
     const VoiceGrant = AccessToken.VoiceGrant;
 
-    const identity = `user-${Math.floor(Math.random() * 10000)}`; // demo identity
+    // Use stable identity so TwiML can dial this client for incoming PSTN calls
+    // Ensure this identity matches the CLIENT_ID used by the /voice handler.
+    const identity = CLIENT_ID;
 
     const token = new AccessToken(accountSid, apiKeySid, apiKeySecret, { ttl: 3600 });
     const voiceGrant = new VoiceGrant({
@@ -50,6 +55,7 @@ app.get('/token', (req, res) => {
     token.addGrant(voiceGrant);
     token.identity = identity;
 
+    console.log(`/token issued for identity=${identity}`);
     res.json({ token: token.toJwt(), identity });
 });
 
@@ -76,8 +82,25 @@ app.post('/make-call', async (req, res) => {
 // Twilio webhook for voice instructions
 app.post('/voice', (req, res) => {
     const twiml = new twilio.twiml.VoiceResponse();
-    // twiml.say('Hello! This is a test call from your Twilio free trial account.');
-    twiml.dial({ callerId: process.env.TWILIO_NUMBER }, req.body.From);
+
+    console.log('/voice webhook body:', req.body);
+
+    // If Twilio called /voice with a 'To' parameter, it's an outbound from the client to PSTN.
+    // In that case, dial the requested number.
+    const to = req.body.To || req.body.to;
+    if (to) {
+        console.log(`/voice: outgoing client call to ${to}`);
+        twiml.dial({ callerId: process.env.TWILIO_NUMBER }, to);
+        res.type('text/xml');
+        return res.send(twiml.toString());
+    }
+
+    // Otherwise this is likely an incoming PSTN call to your Twilio number.
+    // Forward it to the browser client (CLIENT_ID) by dialing the client identity.
+    console.log(`/voice: incoming PSTN -> dialing client ${CLIENT_ID}`);
+    const dial = twiml.dial();
+    dial.client(CLIENT_ID);
+
     res.type('text/xml');
     res.send(twiml.toString());
 });
