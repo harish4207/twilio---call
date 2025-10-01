@@ -85,24 +85,31 @@ app.post('/voice', (req, res) => {
 
     console.log('/voice webhook body:', req.body);
 
-    // If Twilio called /voice with a 'To' parameter, it's an outbound from the client to PSTN.
-    // In that case, dial the requested number.
+    // Distinguish between client-initiated outbound calls and incoming PSTN calls.
+    // Incoming PSTN requests also include a To parameter (the Twilio number), so
+    // only treat the request as an outbound-to-PSTN when the caller is a client identity.
     const to = req.body.To || req.body.to;
-    if (to) {
-        console.log(`/voice: outgoing client call to ${to}`);
+    const from = req.body.From || req.body.from || '';
+    const isClientInitiated = typeof from === 'string' && from.startsWith('client:');
+
+    if (isClientInitiated && to) {
+        console.log(`/voice: outgoing client call to ${to} (from ${from})`);
         twiml.dial({ callerId: process.env.TWILIO_NUMBER }, to);
+        const outTwiml = twiml.toString();
+        console.log('/voice response TwiML:', outTwiml);
         res.type('text/xml');
-        return res.send(twiml.toString());
+        return res.send(outTwiml);
     }
 
     // Otherwise this is likely an incoming PSTN call to your Twilio number.
     // Forward it to the browser client (CLIENT_ID) by dialing the client identity.
-    console.log(`/voice: incoming PSTN -> dialing client ${CLIENT_ID}`);
+    console.log(`/voice: incoming PSTN -> dialing client ${CLIENT_ID} (from ${from}, to ${to})`);
     const dial = twiml.dial();
     dial.client(CLIENT_ID);
-
+    const inTwiml = twiml.toString();
+    console.log('/voice response TwiML:', inTwiml);
     res.type('text/xml');
-    res.send(twiml.toString());
+    res.send(inTwiml);
 });
 
 const PORT = process.env.PORT || 3000;
