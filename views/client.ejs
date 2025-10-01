@@ -16,56 +16,14 @@
     <div>
       <label>Phone number to call (E.164):</label><br />
       <input id="toNumber" placeholder="+1XXXXXXXXXX" />
-      <button id="callBtn">Call</button>
+      <button id="enableAudioBtn">Enable audio</button>
+      <button id="callBtn" disabled>Call</button>
       <button id="hangupBtn" disabled>Hangup</button>
     </div>
 
     <div id="status"></div>
 
-    <script type="module">
-      import { Device } from 'https://esm.sh/@twilio/voice-sdk@2.16.0';
-
-      const statusEl = document.getElementById('status');
-
-      async function getToken() {
-        const resp = await fetch('/token');
-        if (!resp.ok) throw new Error('Failed to get token');
-        return resp.json();
-      }
-
-      let device;
-
-      try {
-        const { token, identity } = await getToken();
-        statusEl.innerText = `Got token for ${identity}`;
-
-        // Create a Device using the Twilio Voice SDK
-        device = new Device(token);
-
-        device.on('ready', () => statusEl.innerText = 'Device ready');
-        device.on('error', (err) => statusEl.innerText = 'Device error: ' + (err.message || err));
-        device.on('connect', () => {
-          statusEl.innerText = 'In call';
-          document.getElementById('hangupBtn').disabled = false;
-        });
-        device.on('disconnect', () => {
-          statusEl.innerText = 'Call ended';
-          document.getElementById('hangupBtn').disabled = true;
-        });
-      } catch (err) {
-        statusEl.innerText = 'Token error: ' + err.message;
-      }
-
-      document.getElementById('callBtn').addEventListener('click', () => {
-        const to = document.getElementById('toNumber').value.trim();
-        if (!to) return alert('Enter a phone number in E.164 format');
-        statusEl.innerText = 'Calling ' + to + '...';
-        device.connect({ To: to });
-      });
-
-      document.getElementById('hangupBtn').addEventListener('click', () => {
-        if (device) device.disconnectAll();
-      });
-    </script>
+    <!-- Load the bundled client-side script (built to public/bundle.js) -->
+    <script src="/static/bundle.js"></script>
   </body>
 </html>
