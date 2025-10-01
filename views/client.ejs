@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Twilio Client Demo</title>
+    <style>
+      body { font-family: Arial, sans-serif; max-width: 720px; margin: 40px auto; }
+      input, button { padding: 8px; margin: 6px 0; font-size: 16px; }
+    </style>
+  </head>
+  <body>
+    <h1>Browser → Phone demo</h1>
+    <p>This demo requests a short-lived Twilio Access Token and uses Twilio JS to make a call from your browser to a phone number.</p>
+
+    <div>
+      <label>Phone number to call (E.164):</label><br />
+      <input id="toNumber" placeholder="+1XXXXXXXXXX" />
+      <button id="callBtn">Call</button>
+      <button id="hangupBtn" disabled>Hangup</button>
+    </div>
+
+    <div id="status"></div>
+
+    <script type="module">
+      import { Device } from 'https://esm.sh/@twilio/voice-sdk@2.16.0';
+
+      const statusEl = document.getElementById('status');
+
+      async function getToken() {
+        const resp = await fetch('/token');
+        if (!resp.ok) throw new Error('Failed to get token');
+        return resp.json();
+      }
+
+      let device;
+
+      try {
+        const { token, identity } = await getToken();
+        statusEl.innerText = `Got token for ${identity}`;
+
+        // Create a Device using the Twilio Voice SDK
+        device = new Device(token);
+
+        device.on('ready', () => statusEl.innerText = 'Device ready');
+        device.on('error', (err) => statusEl.innerText = 'Device error: ' + (err.message || err));
+        device.on('connect', () => {
+          statusEl.innerText = 'In call';
+          document.getElementById('hangupBtn').disabled = false;
+        });
+        device.on('disconnect', () => {
+          statusEl.innerText = 'Call ended';
+          document.getElementById('hangupBtn').disabled = true;
+        });
+      } catch (err) {
+        statusEl.innerText = 'Token error: ' + err.message;
+      }
+
+      document.getElementById('callBtn').addEventListener('click', () => {
+        const to = document.getElementById('toNumber').value.trim();
+        if (!to) return alert('Enter a phone number in E.164 format');
+        statusEl.innerText = 'Calling ' + to + '...';
+        device.connect({ To: to });
+      });
+
+      document.getElementById('hangupBtn').addEventListener('click', () => {
+        if (device) device.disconnectAll();
+      });
+    </script>
+  </body>
+</html>

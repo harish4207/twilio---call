@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Twilio Voice Call Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+        input[type="text"] {
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #007bff;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .info {
+            background-color: #e7f3ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border-left: 4px solid #007bff;
+        }
+        .info h3 {
+            margin-top: 0;
+            color: #333;
+        }
+        .info ul {
+            margin: 10px 0;
+            padding-left: 20px;
+        }
+        .info li {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔊 Twilio Free Trial Voice Call</h1>
+
+        <% if (message) { %>
+            <div class="info">
+                <h3><%= message %></h3>
+            </div>
+        <% } %>
+
+        <form action="/make-call" method="POST">
+            <label for="phone">Enter Verified Phone Number:</label>
+            <input type="text" id="phone" name="phone" placeholder="+91XXXXXXXXX or +1XXXXXXXXXX" required>
+            <button type="submit">📞 Make Call</button>
+        </form>
+
+        <div class="info">
+            <h3>📋 Important Notes:</h3>
+            <ul>
+                <li><strong>Free Trial:</strong> You can only call verified phone numbers</li>
+                <li><strong>Format:</strong> Use international format (e.g., +91XXXXXXXXX for India, +1XXXXXXXXXX for US)</li>
+                <li><strong>Verification:</strong> Add your phone number in Twilio Console first</li>
+                <li><strong>Credits:</strong> $15 free trial credits cover hundreds of minutes</li>
+                <li><strong>Test Message:</strong> You'll hear "Hello! This is a test call from your Twilio free trial account."</li>
+            </ul>
+        </div>
+
+        <div class="info">
+            <h3>🛠️ Setup Instructions:</h3>
+            <ul>
+                <li>1. Replace credentials in <code>.env</code> file with your Twilio account details</li>
+                <li>2. Update the webhook URL in <code>server.js</code> to your deployed server URL</li>
+                <li>3. Deploy to Render, Vercel, or any HTTPS hosting platform</li>
+                <li>4. Verify your phone number in Twilio Console</li>
+                <li>5. Test the call functionality</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

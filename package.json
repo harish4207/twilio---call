@@ -1,0 +1,23 @@
+{
+  "name": "twilio-ejs-app",
+  "version": "1.0.0",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "make-call": "node make_call.js",
+    "answer-phone": "node answer_phone.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@twilio/voice-sdk": "^2.16.0",
+    "dotenv": "^17.2.3",
+    "ejs": "^3.1.10",
+    "express": "^5.1.0",
+    "twilio": "^5.10.2"
+  }
+}
